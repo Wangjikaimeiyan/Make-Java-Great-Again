@@ -68,6 +68,15 @@ const edit = async (id) => {
 }
 // 新增
 const add = () => {
+  // 清空表单
+  dish.value = {
+    id: '',
+    name: '',
+    price: null,
+    detail: '',
+    image: '',
+    category: '',
+  }
   uploadRef.value?.clearFiles()
   isImageChanged.value = false
   dialogVisible.value = true
@@ -167,9 +176,7 @@ const cancel = () => {
   isImageChanged.value = false
   imageFile.value = null
   imageUrl.value = ''
-  if (formRef.value) {
-    formRef.value.resetFields()
-  }
+  
   dialogVisible.value = false
 }
 // 菜品类别
@@ -179,21 +186,6 @@ const categoryList = ref([
   { id: 3, name: '鲁菜' },
   { id: 4, name: '主食' }
 ])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // 引用隐藏的 el-upload 组件实例
 const uploadRef = ref(null)
 // 预览图片的临时 URL（用于 img 标签展示）
@@ -260,14 +252,6 @@ const deleteThisDish = async (id) => {
     }
   })
 }
-
-
-
-
-
-
-
-
 // AI
 // 消息列表
 const messageList = ref([
@@ -520,7 +504,7 @@ const sendMessage = async () => {
   /* 核心：开启弹性布局 */
   width: 100%;
   flex-direction: row;
-  height: 92vh;
+  height: 90.5vh;
   /* overflow: hidden; */
   /* height: 100%; */
   /* flex-direction: column; */
@@ -529,7 +513,7 @@ const sendMessage = async () => {
 
 .left-container {
   /* 弹性布局中的元素，默认占满剩余空间 */
-  flex: 12;
+  flex: 25;
   min-width: 0;
   overflow-y: auto;
   flex-shrink: 0;
@@ -545,7 +529,7 @@ const sendMessage = async () => {
 /* 输入框样式 */
 .demo-input-with-icon {
   margin-top: 10px;
-  margin-left: 15px;
+  /* margin-left: 15px; */
   width: 100%;
 }
 
@@ -642,21 +626,10 @@ const sendMessage = async () => {
   /* 靠底部 */
 
 }
-
-
-
-
-
-
-
-
-
-
-
 /* AI */
 .right-container {
   /* 保留你原有的彈性屬性 */
-  flex: 5;
+  flex: 9;
   min-width: 0;
   /* 新增：自身作為彈性容器，讓對話框自動撐滿 */
   min-height: 0;
