@@ -2,6 +2,8 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Lock, Right } from '@element-plus/icons-vue';
+import { updateShopStatus,queryShopStatus } from '@/api/Statue'
 
 const username = ref('');
 const router = useRouter();
@@ -33,7 +35,40 @@ const getUsername = () => {
 // 钩子函数
 onMounted(() => {
   getUsername();
+  queryShopStatus().then(res => {
+    shopStatus.value = res.data;
+  })
 })
+// 状态变量
+const shopStatus = ref();
+// 修改营业状态
+const change_Statue = async () => {
+  await ElMessageBox.confirm(
+    '请选择店铺营业状态',
+    '状态修改',
+    {
+      type: 'info',
+      confirmButtonText: '开始营业',
+      cancelButtonText: '停业',
+      distinguishCancelAndClose: true
+    }
+  ).then(async () => {
+    // 先提交修改接口
+    await updateShopStatus(1)
+    // 再重新拉取最新状态
+    const res = await queryShopStatus()
+    shopStatus.value = res.data
+    ElMessage.success('已开启营业')
+  }).catch(async (action) => {
+    if (action === 'cancel') {
+      await updateShopStatus(0)
+      const res = await queryShopStatus()
+      shopStatus.value = res.data
+      ElMessage.success('已停业')
+    }
+  })
+}
+
 </script>
 
 <template>
@@ -43,10 +78,19 @@ onMounted(() => {
       <el-header class="header">
         <span class="title">餐厅智能管理系统</span>
         <span class="right_tool">
+          <a href="javascript:void(0)" @click="change_Statue" style="margin-right: 10px;">
+            <el-icon>
+              <Check v-if="shopStatus === 1" />
+              <Close v-else />
+            </el-icon>
+            <span class="status-text">
+              {{ shopStatus === 1 ? '营业中' : '停业中' }}
+            </span>
+          </a>
           <a href="javascript:void(0)" @click="logout">
             <el-icon>
               <SwitchButton />
-            </el-icon> 退出登录 &lt;{{ username }}&gt;
+            </el-icon> 退出登录
           </a>
         </span>
       </el-header>
