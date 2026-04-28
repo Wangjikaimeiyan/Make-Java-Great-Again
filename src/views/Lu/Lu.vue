@@ -409,7 +409,7 @@ const sendMessage = async () => {
     <!-- 定义菜品列表 -->
     <!-- 对话框 -->
     <el-dialog v-model="dialogVisible" :title="dialogTitle"
-        destroy-on-close><!--dialogVisible: 控制对话框的显示与隐藏, dialogTitle: 对话框的标题-->
+        destroy-on-close @close="cancel"><!--dialogVisible: 控制对话框的显示与隐藏, dialogTitle: 对话框的标题-->
         <el-form :model="dish" :rules="rules" ref="formRef" label-width="80px"><!-- employee: 员工数据模型 -->
             <!-- 基本信息 -->
             <!-- 第一行 -->
