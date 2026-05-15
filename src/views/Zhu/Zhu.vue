@@ -366,6 +366,10 @@ const sendMessage = async () => {
                 <!-- 价格 -->
                 <div class="price">
                   ￥ {{ item.price }}
+                  <!-- 换行 -->
+                  <br />
+                  <!-- 总销量： -->
+                  <div class="sales">总销量:{{item.sales}}</div>
                 </div>
                 <!-- 编辑 按钮 -->
                 <el-button type="primary" @click="edit(item.id)" icon="Edit" class="button">编辑</el-button>
@@ -403,8 +407,8 @@ const sendMessage = async () => {
   </div>
   <!-- 定义菜品列表 -->
   <!-- 对话框 -->
-  <el-dialog v-model="dialogVisible" :title="dialogTitle"
-    destroy-on-close @close="cancel"><!--dialogVisible: 控制对话框的显示与隐藏, dialogTitle: 对话框的标题-->
+  <el-dialog v-model="dialogVisible" :title="dialogTitle" destroy-on-close
+    @close="cancel"><!--dialogVisible: 控制对话框的显示与隐藏, dialogTitle: 对话框的标题-->
     <el-form :model="dish" :rules="rules" ref="formRef" label-width="80px"><!-- employee: 员工数据模型 -->
       <!-- 基本信息 -->
       <!-- 第一行 -->
@@ -497,6 +501,11 @@ const sendMessage = async () => {
   margin-left: 11%;
 }
 
+.sales { 
+  color: red;
+  font-size: 15px;
+}
+
 .home-container {
   display: flex;
   /* 核心：开启弹性布局 */
@@ -517,12 +526,12 @@ const sendMessage = async () => {
   flex-shrink: 0;
 }
 
-/*
+
 .right-container {
-  /* 弹性布局中的元素，默认占满剩余空间 
+  /* 弹性布局中的元素，默认占满剩余空间 */
   flex: 5;
   min-width: 0;
-}*/
+}
 
 /* 输入框样式 */
 .demo-input-with-icon {

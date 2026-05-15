@@ -2,7 +2,6 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Lock, Right } from '@element-plus/icons-vue';
 import { updateShopStatus,queryShopStatus } from '@/api/Statue'
 
 const username = ref('');
@@ -131,7 +130,11 @@ const change_Statue = async () => {
                   <Bowl />
                 </el-icon> 主食
               </el-menu-item>
-
+              <el-menu-item index="/layout/order" class="aka">
+                <el-icon>
+                  <ShoppingCart />
+                </el-icon> 订单管理
+              </el-menu-item>
 
             </el-menu>
           </div>

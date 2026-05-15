@@ -368,6 +368,10 @@ const sendMessage = async () => {
                 <!-- 价格 -->
                 <div class="price">
                   ￥ {{ item.price }}
+                  <!-- 换行 -->
+                   <br />
+                   <!-- 总销量： -->
+                    <div class="sales">总销量:{{item.sales}}</div>
                 </div>
                 <!-- 编辑 按钮 -->
                 <el-button type="primary" @click="edit(item.id)" icon="Edit" class="button">编辑</el-button>
@@ -499,6 +503,14 @@ const sendMessage = async () => {
   margin-left: 11%;
 }
 
+.sales {
+  color: red;
+  font-size: 15px;
+  /* margin-top: 15%; */
+  /* 左右居中 */
+  margin-left: 11%;
+}
+
 .home-container {
   display: flex;
   /* 核心：开启弹性布局 */
@@ -519,12 +531,12 @@ const sendMessage = async () => {
   flex-shrink: 0;
 }
 
-/*
+
 .right-container {
-  /* 弹性布局中的元素，默认占满剩余空间 
+  /* 弹性布局中的元素，默认占满剩余空间 */
   flex: 5;
   min-width: 0;
-}*/
+}
 
 /* 输入框样式 */
 .demo-input-with-icon {
