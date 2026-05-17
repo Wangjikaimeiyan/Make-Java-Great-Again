@@ -82,6 +82,18 @@ onUnmounted(() => {
         timer = null
     }
 })
+// **********************************************订单列表************************************************
+const OrderList = ref([
+    { 
+        id: 1,
+        image: 'https://thirdwx.qlogo.cn/mmopen/vi_32/BZIqUk8zn3qlteK3PZTic7mvmsV6JweX2ue2Xn5WPeib6WTLUV9ghZOGpicDkORiawibsDS32TjT3atBsibNHEMYhULKe2WCCxCdtiaxluzLbGwXDQ/132',
+    }
+])
+// 单个订单
+const Order = ref({
+    id: 1,
+})
+// **********************************************订单列表************************************************
 
 // *****************************************菜品销量榜单**************************************************
 </script>
@@ -100,12 +112,41 @@ onUnmounted(() => {
                     <el-radio-button label="D">已完成</el-radio-button>
                 </el-radio-group>
 
-                <!-- 主要菜单展示区域 -->
+                <!-- ***************************************主要订单展示区域*********************************** -->
                 <div class="demo-input-with-icon">
-
-
-
+                    <el-card v-for="item in OrderList" :key="item.id">
+                        
+                        <div class="card-body-wrapper">
+                            <!-- <template #header>Yummy hamburger</template>头部，名字 -->
+                            <!-- 分为左中右三部分，左边图片，右边描述，最右边按钮 -->
+                            <!-- 左：正方形图片区 -->
+                            <div class="left-img">
+                                <img :src="item.image" alt="dish" class="img-square" />
+                            </div>
+                            
+                            <!-- 中：菜品介绍 -->
+                            <div class="center-info">
+                                <div class="dish-name1">
+                                    <!-- {{ item.name }} -->
+                                      66
+                                </div>
+                                <div class="dish-description">
+                                    <!-- {{ item.detail }} -->
+                                      66
+                                </div>
+                            </div>
+                            
+                            <!-- 右：操作按钮 -->
+                            <div class="right-action">
+                                <!-- 编辑 按钮 -->
+                                <el-button type="primary" @click="" icon="Edit" class="button1">接单</el-button>
+                                <!-- 删除 按钮 -->
+                                <el-button type="danger" @click="" icon="Delete" class="button1">拒单</el-button>
+                            </div>
+                        </div>
+                    </el-card>
                 </div>
+                <!-- ***************************************主要订单展示区域*********************************** -->
                 <!-- 分页 区域 -->
                 <div class="fenye-container">
                     <div class="demo-pagination-block">
@@ -135,7 +176,7 @@ onUnmounted(() => {
                 <!-- 右侧下方是渲染菜品销量排行区域 -->
                 <div class="dish-sales-container">
                     <div class="ranking-header">
-                        <div class="amount-item-title1">销量榜单</div>
+                        <div class="amount-item-title1">⭐销量榜单⭐</div>
                     </div>
 
                     <div class="ranking-list">
@@ -192,6 +233,8 @@ onUnmounted(() => {
     min-width: 0;
     overflow-y: auto;
     flex-shrink: 0;
+    margin-right: 20px;
+    margin-left: 10px;
 }
 
 /* 包裹主要菜单展示区域的容器，使其占据剩余空间并可滚动 */
@@ -202,7 +245,7 @@ onUnmounted(() => {
     /* 内容过多时滚动 */
     margin-top: 10px;
     width: 100%;
-    /* 其他原有样式 */
+    /* 距离右侧组件 10px */
 }
 
 
@@ -287,6 +330,7 @@ onUnmounted(() => {
     justify-content: center;
     margin-top: 10px;
 }
+
 
 /* **********************************订单状态区域************************************** */
 /* **********************************分页条************************************** */
@@ -401,4 +445,45 @@ onUnmounted(() => {
     color: #ff7b7b; /* 使用强调色显示数字 */
 }
 /*------------------------------ 菜品销量榜单 --------------------------------------*/
+/*------------------------------ 订单列表 --------------------------------------*/
+.card-body-wrapper {
+    display: flex;
+    width: 100%;
+    height: 135px;
+    /* 垂直居中 */
+    /* align-items: center; */
+    gap: 20px;
+    padding: 0;
+    /* 圆角 */
+    border-radius: 10px;
+    /* margin-right: 10px; */
+}
+.left-img {
+  /* width: 22%; */
+  aspect-ratio: 1/1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* 中：自适应占满 */
+.center-info {
+  flex: 10;
+  margin-left: 20px;
+  margin-top: 0;
+  align-self: flex-start;
+}
+.dish-name1 {
+  margin-top: 0.05%;
+  font-size: 40px;
+  color: rgb(255, 94, 0);
+  font-family: "楷体", "KaiTi", serif;
+}
+.right-action{
+    flex: 3;
+}
+.button1 {
+  margin-top: 50%;
+  text-align: center;
+}
+/*------------------------------ 订单列表 --------------------------------------*/
 </style>
