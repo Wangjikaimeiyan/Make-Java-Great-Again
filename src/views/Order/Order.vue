@@ -68,7 +68,7 @@ let timer = null // 用于存储定时器ID
 onMounted(() => {
     // 1. 立即执行一次获取数据
     fetchSalesData()
-    
+
     // 2. 设置定时器，每60秒（1分钟）执行一次
     timer = setInterval(() => {
         fetchSalesData()
@@ -84,9 +84,9 @@ onUnmounted(() => {
 })
 // **********************************************订单列表************************************************
 const OrderList = ref([
-    { 
+    {
         id: 1,
-        image: 'https://thirdwx.qlogo.cn/mmopen/vi_32/BZIqUk8zn3qlteK3PZTic7mvmsV6JweX2ue2Xn5WPeib6WTLUV9ghZOGpicDkORiawibsDS32TjT3atBsibNHEMYhULKe2WCCxCdtiaxluzLbGwXDQ/132',
+        image: 'https://thirdwx.qlogo.cn/mmopen/vi_32/BZIqUk8zn3qlteK3PZTic7mvmsV6JweX2ue2Xn5WPeib6WTLUV9ghZOLOibna92hiacLuiasFHDq6QmmdxpwQCNU3aqjLsPXdWJXdPvM0YcZjYJo/132',
     }
 ])
 // 单个订单
@@ -94,6 +94,13 @@ const Order = ref({
     id: 1,
 })
 // **********************************************订单列表************************************************
+// **********************************************展示订单详情************************************************
+const handleShowDetail = () => {
+    // console.log("查看订单详情")
+    // elMessage.info('查看订单详情')
+    ElMessage.info('查看订单详情')
+}
+// **********************************************展示订单详情************************************************
 
 // *****************************************菜品销量榜单**************************************************
 </script>
@@ -104,40 +111,56 @@ const Order = ref({
             <!-- 左侧 -->
             <div class="left-container">
                 <!-- 此处用来显示订单选项,未完成、正处理、已完成 -->
+                <div class = "top-container">
+                    <el-radio-group class="top-tap" v-model="temp" @change="handlequery">
+                        <el-radio-button label="A">未支付</el-radio-button>
+                        <el-radio-button label="B">未接单</el-radio-button>
+                        <el-radio-button label="C">进行中</el-radio-button>
+                        <el-radio-button label="D">已完成</el-radio-button>
+                    </el-radio-group>
+                    <span class="label">
+                        搜索订单:
+                    <el-input v-model="input1" class="responsive-input" placeholder="请输入订单id" :prefix-icon="Search" />
 
-                <el-radio-group class="top-tap" v-model="temp" @change="handlequery">
-                    <el-radio-button label="A">未支付</el-radio-button>
-                    <el-radio-button label="B">未接单</el-radio-button>
-                    <el-radio-button label="C">进行中</el-radio-button>
-                    <el-radio-button label="D">已完成</el-radio-button>
-                </el-radio-group>
-
+                    </span>
+                </div>
                 <!-- ***************************************主要订单展示区域*********************************** -->
                 <div class="demo-input-with-icon">
                     <el-card v-for="item in OrderList" :key="item.id">
-                        
-                        <div class="card-body-wrapper">
+
+                        <div class="card-body-wrapper" @click.self="handleShowDetail">
                             <!-- <template #header>Yummy hamburger</template>头部，名字 -->
                             <!-- 分为左中右三部分，左边图片，右边描述，最右边按钮 -->
                             <!-- 左：正方形图片区 -->
                             <div class="left-img">
-                                <img :src="item.image" alt="dish" class="img-square" />
+                                <!-- TODO: 添加图片点击事件 -->
+                                <img :src="item.image" alt="dish" class="img-square" @click.self="handleShowDetail" />
                             </div>
-                            
-                            <!-- 中：菜品介绍 -->
+
+                            <!-- 中：（左侧用户名称，订单编号，下单时间，用户备注。中间：菜品名称······*数量），右侧小计，操作按钮 -->
                             <div class="center-info">
-                                <div class="dish-name1">
-                                    <!-- {{ item.name }} -->
-                                      66
+                                <div class="Order-info"  @click.self="handleShowDetail">
+                                    <!-- 用户名称 -->
+                                     <div>用户名称：item.username</div>
+                                     <div>订单编号：item.id</div>
+                                     <div>下单时间：item.time</div>
+                                     <div class="remark">用户备注：66666666666666666666666666666666666666</div>
                                 </div>
-                                <div class="dish-description">
-                                    <!-- {{ item.detail }} -->
-                                      66
+                                <div class="order-detail"  @click.self="handleShowDetail">
+                           <!-- 单个菜品行 -->
+                                 <!-- <div class="dish-row" v-for="(dish, index) in item.dishes" :key="index"> -->
+                                 <div class="dish-row">
+                                    <span class="dish-name1">wqwqqw}</span>
+                                    <span class="dish-dots"></span>
+                                    <span class="dish-count1">x6</span>
+                                        </div>
                                 </div>
                             </div>
-                            
+
                             <!-- 右：操作按钮 -->
-                            <div class="right-action">
+                            <div class="right-action" @click.self="handleShowDetail">
+                                <!-- 小计 -->
+                                 <div class="total">小计：2365</div>
                                 <!-- 编辑 按钮 -->
                                 <el-button type="primary" @click="" icon="Edit" class="button1">接单</el-button>
                                 <!-- 删除 按钮 -->
@@ -324,13 +347,31 @@ const Order = ref({
 }
 
 /* **********************************订单状态区域************************************** */
+.top-container{
+    /* 弹性布局 */
+    display: flex;
+    /* 横向布局 */
+    flex-direction: row;
+}
 .top-tap {
+    flex: 4;
     /*顶部标签 */
     display: flex;
-    justify-content: center;
+    /* justify-content: center; */
+    margin-left: 40px;
     margin-top: 10px;
 }
-
+.label {
+    /* flex: 5; */
+  /* margin-top: 5px; */
+  white-space: nowrap;
+  color: var(--el-text-color-regular);
+  margin-top: 10px;
+  margin-right: 30px;
+}
+.responsive-input {
+  width: 240px;
+}
 
 /* **********************************订单状态区域************************************** */
 /* **********************************分页条************************************** */
@@ -360,7 +401,8 @@ const Order = ref({
     display: flex;
     flex-direction: column;
     padding: 10px;
-    overflow-y: auto; /* 如果榜单很长，允许内部滚动 */
+    overflow-y: auto;
+    /* 如果榜单很长，允许内部滚动 */
 }
 
 .ranking-header {
@@ -371,7 +413,8 @@ const Order = ref({
 .ranking-list {
     display: flex;
     flex-direction: column;
-    gap: 12px; /* 列表项之间的间距 */
+    gap: 12px;
+    /* 列表项之间的间距 */
 }
 
 .ranking-item {
@@ -401,17 +444,20 @@ const Order = ref({
     background-color: #ff4d4f;
     color: white;
 }
+
 .rank-2 {
     background-color: #ff7a45;
     color: white;
 }
+
 .rank-3 {
     background-color: #ffa940;
     color: white;
 }
 
 .dish-name {
-    width: 80px; /* 固定名称宽度，保持对齐 */
+    width: 80px;
+    /* 固定名称宽度，保持对齐 */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -421,7 +467,8 @@ const Order = ref({
 
 /* 进度条容器 */
 .progress-bg {
-    flex: 1; /* 占据剩余空间 */
+    flex: 1;
+    /* 占据剩余空间 */
     height: 8px;
     background-color: #f0f0f0;
     border-radius: 4px;
@@ -433,17 +480,21 @@ const Order = ref({
 /* 进度条填充 */
 .progress-bar {
     height: 100%;
-    background: linear-gradient(90deg, #385e6e 0%, #5a8a9e 100%); /* 使用主题色系渐变 */
+    background: linear-gradient(90deg, #385e6e 0%, #5a8a9e 100%);
+    /* 使用主题色系渐变 */
     border-radius: 4px;
-    transition: width 0.5s ease-in-out; /* 增加动画效果 */
+    transition: width 0.5s ease-in-out;
+    /* 增加动画效果 */
 }
 
 .dish-sales-num {
     width: 40px;
     text-align: right;
     font-weight: bold;
-    color: #ff7b7b; /* 使用强调色显示数字 */
+    color: #ff7b7b;
+    /* 使用强调色显示数字 */
 }
+
 /*------------------------------ 菜品销量榜单 --------------------------------------*/
 /*------------------------------ 订单列表 --------------------------------------*/
 .card-body-wrapper {
@@ -458,32 +509,115 @@ const Order = ref({
     border-radius: 10px;
     /* margin-right: 10px; */
 }
+
 .left-img {
-  /* width: 22%; */
-  aspect-ratio: 1/1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    /* width: 22%; */
+    aspect-ratio: 1/1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
+
 /* 中：自适应占满 */
 .center-info {
-  flex: 10;
-  margin-left: 20px;
-  margin-top: 0;
-  align-self: flex-start;
+    display: flex;
+    flex: 10;
+    margin-left: 20px;
+    margin-top: 0;
+    align-self: flex-start;
+    /* 横向布局 */
+    flex-direction: row;
+    /* 左侧边界线灰色1px */
+    /* border-left: 1px solid #eee; */
+    /* 高度限制 */
+    height: 100%;
 }
+.Order-info {
+    flex: 5;
+    width: 100%;
+    margin-right: 60px;
+    /* 新增：防止子元素撑开父容器 */
+    min-width: 0; 
+    overflow: hidden; /* 确保父容器也隐藏溢出 */
+}
+.remark {
+    /* 1. 强制文本在一行内显示，不换行 */
+    white-space: nowrap;
+    
+    /* 2. 隐藏超出容器宽度的内容 */
+    overflow: hidden;
+    
+    /* 3. 当文本溢出时，显示省略号 (...) */
+    text-overflow: ellipsis;
+    
+    /* 4. (重要) 必须设置一个最大宽度或宽度，否则它会无限撑开父容器 */
+    width: 100%; 
+    /* 或者使用 max-width: 200px; 根据你的布局需求调整 */
+}
+/* *****************Order-detail******************* */
+/* 订单详情容器 */
+.order-detail {
+    flex: 6;
+    overflow-y: auto;
+    /* 隐藏滚动条（可选） */
+    scrollbar-width: none; 
+    -ms-overflow-style: none;
+}
+.order-detail::-webkit-scrollbar {
+    display: none;
+}
+
+/* 每一行菜品的容器 */
+.dish-row {
+    display: flex;
+    align-items: baseline; /* 基线对齐，让文字底部对齐 */
+    width: 100%;
+    margin-bottom: 4px; /* 行间距 */
+    font-size: 14px;
+    color: #333;
+}
+
+/* 左侧：菜品名称 */
 .dish-name1 {
-  margin-top: 0.05%;
-  font-size: 40px;
-  color: rgb(255, 94, 0);
-  font-family: "楷体", "KaiTi", serif;
+    white-space: nowrap; /* 防止名字换行 */
+    overflow: hidden;
+    text-overflow: ellipsis; /* 如果名字太长，显示省略号 */
+    max-width: 60%; /* 限制最大宽度，防止挤压右边 */
 }
-.right-action{
+
+/* 中间：点状填充 */
+.dish-dots {
+    flex: 1; /* 占据剩余所有空间 */
+    border-bottom: 3px dotted #ccc; /* 使用虚线模拟点状填充 */
+    margin: 0 8px; /* 左右留一点空隙 */
+    position: relative;
+    top: -4px; /* 微调虚线位置，使其视觉上居中于文字之间 */
+}
+
+/* 右侧：数量 */
+.dish-count1 {
+    white-space: nowrap;
+    font-weight: bold;
+    color: #ff7b7b; /* 强调色 */
+    margin-right: 20px;
+}
+/* *****************Order-detail******************* */
+
+
+.right-action {
     flex: 3;
 }
-.button1 {
-  margin-top: 50%;
-  text-align: center;
+.total{
+    color: red;
+     font-size: 20px;
+     /* 居中 */
+     margin-left: 15%;
+     margin-top: 10%;
 }
+.button1 {
+    margin-top: 25%;
+    text-align: center;
+}
+
 /*------------------------------ 订单列表 --------------------------------------*/
 </style>
