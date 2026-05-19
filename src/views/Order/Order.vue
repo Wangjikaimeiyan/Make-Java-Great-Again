@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue' // 1. 导入 onUnmounted
-import { queryAllSales } from '@/api/Order'
+import { queryAllSales,queryAllNotPay,queryAllNotFinish } from '@/api/Order'
 import { ElMessage } from 'element-plus' // 2. 导入 ElMessage
 
 const temp = ref('A')
@@ -22,12 +22,18 @@ const handleCurrentChange = (val) => {
 const handlequery = () => {
     console.log("当前选项为：" + temp.value)
     if (temp.value == 'A') {
-        console.log("未支付")
+        OrderList.value = []
+        getAllNotPay()
     } else if (temp.value == 'B') {
-        console.log("未接单")
+        // 清空表单
+        OrderList.value = []
+        // 获取未接单订单
+        getAllNotFinish()
     } else if (temp.value == 'C') {
+        OrderList.value = []
         console.log("进行中")
     } else if (temp.value == 'D') {
+        OrderList.value = []
         console.log("已完成")
     }
 }
@@ -68,6 +74,8 @@ let timer = null // 用于存储定时器ID
 onMounted(() => {
     // 1. 立即执行一次获取数据
     fetchSalesData()
+    // 获取未支付订单
+    getAllNotPay()
 
     // 2. 设置定时器，每60秒（1分钟）执行一次
     timer = setInterval(() => {
@@ -83,22 +91,36 @@ onUnmounted(() => {
     }
 })
 // **********************************************订单列表************************************************
-const OrderList = ref([
-    {
-        id: 1,
-        image: 'https://thirdwx.qlogo.cn/mmopen/vi_32/BZIqUk8zn3qlteK3PZTic7mvmsV6JweX2ue2Xn5WPeib6WTLUV9ghZOLOibna92hiacLuiasFHDq6QmmdxpwQCNU3aqjLsPXdWJXdPvM0YcZjYJo/132',
+const OrderList = ref([])
+// 获取未支付订单
+const getAllNotPay = async () => { 
+    const result = await queryAllNotPay()
+    if (result.code) {// 获取成功
+        OrderList.value = result.data
+    } else {// 获取失败
+        ElMessage.error(result.msg || '获取订单数据失败')
     }
-])
-// 单个订单
-const Order = ref({
-    id: 1,
-})
+}
+// 获取接单订单
+const getAllNotFinish = async () => { 
+    const result = await queryAllNotFinish()
+    if (result.code) {// 获取成功
+        OrderList.value = result.data
+    } else {// 获取失败
+        ElMessage.error(result.msg || '获取订单数据失败')
+    }
+}
 // **********************************************订单列表************************************************
 // **********************************************展示订单详情************************************************
 const handleShowDetail = () => {
     // console.log("查看订单详情")
     // elMessage.info('查看订单详情')
     ElMessage.info('查看订单详情')
+}
+const handleShowpicture = () => {
+    // console.log("查看图片")
+    // elMessage.info('查看图片')
+    ElMessage.info('查看图片')
 }
 // **********************************************展示订单详情************************************************
 
@@ -113,6 +135,7 @@ const handleShowDetail = () => {
                 <!-- 此处用来显示订单选项,未完成、正处理、已完成 -->
                 <div class = "top-container">
                     <el-radio-group class="top-tap" v-model="temp" @change="handlequery">
+                        <!-- A绑定未支付订单调查函数 -->
                         <el-radio-button label="A">未支付</el-radio-button>
                         <el-radio-button label="B">未接单</el-radio-button>
                         <el-radio-button label="C">进行中</el-radio-button>
@@ -126,7 +149,7 @@ const handleShowDetail = () => {
                 </div>
                 <!-- ***************************************主要订单展示区域*********************************** -->
                 <div class="demo-input-with-icon">
-                    <el-card v-for="item in OrderList" :key="item.id">
+                    <el-card v-for="item in OrderList" :key="item.orderId">
 
                         <div class="card-body-wrapper" @click.self="handleShowDetail">
                             <!-- <template #header>Yummy hamburger</template>头部，名字 -->
@@ -134,25 +157,25 @@ const handleShowDetail = () => {
                             <!-- 左：正方形图片区 -->
                             <div class="left-img">
                                 <!-- TODO: 添加图片点击事件 -->
-                                <img :src="item.image" alt="dish" class="img-square" @click.self="handleShowDetail" />
+                                <img :src="item.userUrl" alt="user" class="img-square" @click.self="handleShowpicture" />
                             </div>
 
                             <!-- 中：（左侧用户名称，订单编号，下单时间，用户备注。中间：菜品名称······*数量），右侧小计，操作按钮 -->
                             <div class="center-info">
                                 <div class="Order-info"  @click.self="handleShowDetail">
                                     <!-- 用户名称 -->
-                                     <div>用户名称：item.username</div>
-                                     <div>订单编号：item.id</div>
-                                     <div>下单时间：item.time</div>
-                                     <div class="remark">用户备注：66666666666666666666666666666666666666</div>
+                                     <div>用户名称：{{item.nickName}}</div>
+                                     <div>订单编号：{{item.orderId}}</div>
+                                     <div>下单时间：{{item.orderTime}}</div>
+                                     <div class="remark">用户备注：{{ item.remark }}</div>
                                 </div>
                                 <div class="order-detail"  @click.self="handleShowDetail">
                            <!-- 单个菜品行 -->
-                                 <!-- <div class="dish-row" v-for="(dish, index) in item.dishes" :key="index"> -->
-                                 <div class="dish-row">
-                                    <span class="dish-name1">wqwqqw}</span>
+                                 <div class="dish-row" v-for="dish in item.dishesDtos" :key="dish.dishNum">
+                                 <!-- <div class="dish-row"> -->
+                                    <span class="dish-name1">{{ dish.dishName }}</span>
                                     <span class="dish-dots"></span>
-                                    <span class="dish-count1">x6</span>
+                                    <span class="dish-count1">×{{dish.dishNum}}</span>
                                         </div>
                                 </div>
                             </div>
@@ -160,11 +183,24 @@ const handleShowDetail = () => {
                             <!-- 右：操作按钮 -->
                             <div class="right-action" @click.self="handleShowDetail">
                                 <!-- 小计 -->
-                                 <div class="total">小计：2365</div>
+                                 <div class="total">小计：{{ item.totalPrice }}</div>
+                                 <div v-if="temp === 'A'">
+                                    <div class="A-st">等待用户付款······</div>
+                                 </div>
+                                 <div v-if="temp === 'B'">
                                 <!-- 编辑 按钮 -->
                                 <el-button type="primary" @click="" icon="Edit" class="button1">接单</el-button>
                                 <!-- 删除 按钮 -->
                                 <el-button type="danger" @click="" icon="Delete" class="button1">拒单</el-button>
+                            </div>
+                            <div v-if="temp === 'C'">
+                                <!-- 编辑 按钮 -->
+                                <el-button type="primary" @click="" icon="Edit" class="C-st">完成</el-button>
+                            </div>
+                            <div v-if="temp === 'D'">
+                                <!-- 编辑 按钮 -->
+                                <el-button type="danger" @click="" icon="Edit" class="D-st">售后服务</el-button>
+                            </div>
                             </div>
                         </div>
                     </el-card>
@@ -539,6 +575,10 @@ const handleShowDetail = () => {
     /* 新增：防止子元素撑开父容器 */
     min-width: 0; 
     overflow: hidden; /* 确保父容器也隐藏溢出 */
+    /* 黑体 */
+    font-family: "黑体";
+    /* 字体大小 */
+    font-size: 15px;
 }
 .remark {
     /* 1. 强制文本在一行内显示，不换行 */
@@ -559,12 +599,17 @@ const handleShowDetail = () => {
 .order-detail {
     flex: 6;
     overflow-y: auto;
-    /* 隐藏滚动条（可选） */
-    scrollbar-width: none; 
-    -ms-overflow-style: none;
 }
 .order-detail::-webkit-scrollbar {
-    display: none;
+    width: 6px; /* 设置滚动条宽度 */
+}
+.order-detail::-webkit-scrollbar-thumb {
+    background-color: #ccc; /* 滚动条滑块颜色 */
+    border-radius: 3px; /* 圆角 */
+}
+.order-detail::-webkit-scrollbar-thumb {
+    background-color: #ccc; /* 滚动条滑块颜色 */
+    border-radius: 3px; /* 圆角 */
 }
 
 /* 每一行菜品的容器 */
@@ -614,10 +659,23 @@ const handleShowDetail = () => {
      margin-left: 15%;
      margin-top: 10%;
 }
+.A-st{
+    margin-top: 25%;
+    /* 灰色 */
+    color: gray;
+    text-align: center;
+}
 .button1 {
     margin-top: 25%;
     text-align: center;
 }
-
+.C-st{
+    margin-top: 25%;
+    margin-left: 30%;
+}
+.D-st{
+    margin-top: 25%;
+    margin-left: 20%;
+}
 /*------------------------------ 订单列表 --------------------------------------*/
 </style>
