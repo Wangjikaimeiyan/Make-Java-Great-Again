@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue' // 1. 导入 onUnmounted
-import { queryAllSales,queryAllNotPay,queryAllNotFinish,queryAllInProgress,queryAllFinished,acceptOrder } from '@/api/Order'
+import { queryAllSales,queryAllNotPay,queryAllNotFinish,queryAllInProgress,queryAllFinished,acceptOrder,rejectOrder } from '@/api/Order'
 import { ElMessage,ElMessageBox } from 'element-plus' // 2. 导入 ElMessage
 
 const temp = ref('A')
@@ -196,7 +196,7 @@ const handleAcceptOrder = async (id) => {
     // 走到这里 = 用户点了确定
     const res = await acceptOrder(id)
     if (res.code) {
-      ElMessage.success(res.result)
+      ElMessage.success(res.data)
       getAllNotFinish() // 刷新列表
     } else {
       ElMessage.error(res.msg)
@@ -206,7 +206,29 @@ const handleAcceptOrder = async (id) => {
     ElMessage.info('已取消接单')
   }
 }
+// 拒绝接单
+const handleRejectOrder = async (id) => { 
+    try {
+    // 弹出确认框，只有点确定才往下走
+    await ElMessageBox.confirm('确定要拒绝接单吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
 
+    // 走到这里 = 用户点了确定
+    const res = await rejectOrder(id)
+    if (res.code) {
+      ElMessage.success(res.data)
+      getAllNotFinish() // 刷新列表
+    } else {
+      ElMessage.error(res.msg)
+    }
+  } catch {
+    // 用户点取消、关闭弹窗，直接进这里，什么都不执行
+    ElMessage.info('已取消拒单')
+  }
+}
 // **********************************************订单交互功能************************************************
 
 // *****************************************菜品销量榜单**************************************************
@@ -274,14 +296,14 @@ const handleAcceptOrder = async (id) => {
                                  </div>
                                  <div v-else-if="temp === 'B'">
                                 <el-button type="primary" @click="handleAcceptOrder(item.orderId)" icon="Edit" class="button1">接单</el-button>
-                                <el-button type="danger" @click="" icon="Delete" class="button1">拒单</el-button>
+                                <el-button type="danger" @click="handleRejectOrder(item.orderId)" icon="Delete" class="button1">拒单</el-button>
                             </div>
                             <div v-else-if="temp === 'C'">
                                 <!-- 编辑 按钮 -->
                                 <el-button type="primary" @click="" icon="Edit" class="C-st">完成</el-button>
                             </div>
                             <div v-else-if="temp === 'D'">
-                                <div v-if="item.status==='4'" class="A-st">用户取消订单</div>
+                                <div v-if="item.status==='4'" class="A-st">取消已订单</div>
                                 <!-- 编辑 按钮 -->
                                 <!-- <el-button type="danger" @click="" icon="Edit" class="D-st">售后服务</el-button> -->
                                 <el-button v-else-if="item.status==='3'" type="danger" @click="" icon="Edit" class="D-st">售后服务</el-button>

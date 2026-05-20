@@ -19,3 +19,6 @@ export const queryAllFinished = ((pageNum,pageSize) => request.get(`/Order/allFi
 // 接单acceptOrder
 export const acceptOrder = (orderId) => request.post(`/Order/acceptOrder?orderId=${orderId}`)
 
+// rejectOrder拒绝接单
+export const rejectOrder = (orderId) => request.post(`/Order/rejectOrder?orderId=${orderId}`)
+
