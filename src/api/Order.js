@@ -16,3 +16,6 @@ export const queryAllInProgress = ((pageNum,pageSize) => request.get(`/Order/all
 // 已完成
 export const queryAllFinished = ((pageNum,pageSize) => request.get(`/Order/allFinished?pageNum=${pageNum}&pageSize=${pageSize}`))
 
+// 接单acceptOrder
+export const acceptOrder = (orderId) => request.post(`/Order/acceptOrder?orderId=${orderId}`)
+
