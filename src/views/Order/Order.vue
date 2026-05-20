@@ -6,20 +6,14 @@ import { ElMessage } from 'element-plus' // 2. 导入 ElMessage
 const temp = ref('A')
 // *****************************************分页**************************************************
 
-const currentPage2 = ref(5)
-const pageSize2 = ref(100)
-const background = ref(true)
-const disabled = ref(false)
+const currentPage2 = ref(1) // 当前页数
+const pageSize2 = ref(5) // 每页显示的条数
+const background = ref(true) // 是否显示背景颜色
+const disabled = ref(false) // 是否禁用
+const total = ref(0) // 总数
 
-const handleSizeChange = (val) => {
+const handleSizeChange = (val) => {//每页条数改变时触发
     console.log(`${val} items per page`)
-}
-const handleCurrentChange = (val) => {
-    console.log(`current page: ${val}`)
-}
-// *****************************************分页**************************************************
-// 获取订单列表
-const handlequery = () => {
     console.log("当前选项为：" + temp.value)
     if (temp.value == 'A') {
         OrderList.value = []
@@ -37,11 +31,54 @@ const handlequery = () => {
         console.log("已完成")
     }
 }
+const handleCurrentChange = (val) => {//页码改变时触发
+    console.log(`current page: ${val}`)
+    console.log("当前选项为：" + temp.value)
+    if (temp.value == 'A') {
+        // 将当前页码赋值1
+        OrderList.value = []
+        getAllNotPay()
+    } else if (temp.value == 'B') {
+        // 清空表单
+        OrderList.value = []
+        // 获取未接单订单
+        getAllNotFinish()
+    } else if (temp.value == 'C') {
+        OrderList.value = []
+        console.log("进行中")
+    } else if (temp.value == 'D') {
+        OrderList.value = []
+        console.log("已完成")
+    }
+}
+// *****************************************分页**************************************************
+// 获取订单列表
+const handlequery = () => {
+    console.log("当前选项为：" + temp.value)
+    if (temp.value == 'A') {
+        // 将当前页码赋值1
+        currentPage2.value = 1
+        OrderList.value = []
+        getAllNotPay()
+    } else if (temp.value == 'B') {
+        currentPage2.value = 1
+        // 清空表单
+        OrderList.value = []
+        // 获取未接单订单
+        getAllNotFinish()
+    } else if (temp.value == 'C') {
+        currentPage2.value = 1
+        OrderList.value = []
+        console.log("进行中")
+    } else if (temp.value == 'D') {
+        currentPage2.value = 1
+        OrderList.value = []
+        console.log("已完成")
+    }
+}
 // *****************************************菜品销量榜单**************************************************
 //模拟菜品数据
-const dishList = ref([
-    // { name: '宫保鸡丁', sales: 23 },数据结构
-])
+const dishList = ref([])
 
 // 计算最大销量，用于计算进度条百分比
 const maxSales = computed(() => {
@@ -94,18 +131,20 @@ onUnmounted(() => {
 const OrderList = ref([])
 // 获取未支付订单
 const getAllNotPay = async () => { 
-    const result = await queryAllNotPay()
+    const result = await queryAllNotPay(currentPage2.value,pageSize2.value)
     if (result.code) {// 获取成功
-        OrderList.value = result.data
+        total.value = result.data.total
+        OrderList.value = result.data.rows
     } else {// 获取失败
         ElMessage.error(result.msg || '获取订单数据失败')
     }
 }
 // 获取接单订单
 const getAllNotFinish = async () => { 
-    const result = await queryAllNotFinish()
+    const result = await queryAllNotFinish(currentPage2.value,pageSize2.value)
     if (result.code) {// 获取成功
-        OrderList.value = result.data
+        total.value = result.data.total
+        OrderList.value = result.data.rows
     } else {// 获取失败
         ElMessage.error(result.msg || '获取订单数据失败')
     }
@@ -211,7 +250,7 @@ const handleShowpicture = () => {
                     <div class="demo-pagination-block">
                         <el-pagination v-model:current-page="currentPage2" v-model:page-size="pageSize2"
                             :page-sizes="[5, 10, 15, 30, 50, 100]" :disabled="disabled" :background="background"
-                            layout="sizes, prev, pager, next" :total="1000" @size-change="handleSizeChange"
+                            layout="sizes, prev, pager, next" :total="total" @size-change="handleSizeChange"
                             @current-change="handleCurrentChange" />
                     </div>
                 </div>
