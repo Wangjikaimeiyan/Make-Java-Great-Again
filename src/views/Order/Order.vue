@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue' // 1. 导入 onUnmounted
-import { queryAllSales,queryAllNotPay,queryAllNotFinish } from '@/api/Order'
+import { queryAllSales,queryAllNotPay,queryAllNotFinish,queryAllInProgress,queryAllFinished } from '@/api/Order'
 import { ElMessage } from 'element-plus' // 2. 导入 ElMessage
 
 const temp = ref('A')
@@ -25,10 +25,10 @@ const handleSizeChange = (val) => {//每页条数改变时触发
         getAllNotFinish()
     } else if (temp.value == 'C') {
         OrderList.value = []
-        console.log("进行中")
+        getAllInProgress()
     } else if (temp.value == 'D') {
         OrderList.value = []
-        console.log("已完成")
+        getAllFinished()
     }
 }
 const handleCurrentChange = (val) => {//页码改变时触发
@@ -45,10 +45,10 @@ const handleCurrentChange = (val) => {//页码改变时触发
         getAllNotFinish()
     } else if (temp.value == 'C') {
         OrderList.value = []
-        console.log("进行中")
+        getAllInProgress()
     } else if (temp.value == 'D') {
         OrderList.value = []
-        console.log("已完成")
+        getAllFinished()
     }
 }
 // *****************************************分页**************************************************
@@ -69,11 +69,11 @@ const handlequery = () => {
     } else if (temp.value == 'C') {
         currentPage2.value = 1
         OrderList.value = []
-        console.log("进行中")
+        getAllInProgress()
     } else if (temp.value == 'D') {
         currentPage2.value = 1
         OrderList.value = []
-        console.log("已完成")
+        getAllFinished()
     }
 }
 // *****************************************菜品销量榜单**************************************************
@@ -142,6 +142,26 @@ const getAllNotPay = async () => {
 // 获取接单订单
 const getAllNotFinish = async () => { 
     const result = await queryAllNotFinish(currentPage2.value,pageSize2.value)
+    if (result.code) {// 获取成功
+        total.value = result.data.total
+        OrderList.value = result.data.rows
+    } else {// 获取失败
+        ElMessage.error(result.msg || '获取订单数据失败')
+    }
+}
+// 获取处理中订单
+const getAllInProgress = async () => { 
+    const result = await queryAllInProgress(currentPage2.value,pageSize2.value)
+    if (result.code) {// 获取成功
+        total.value = result.data.total
+        OrderList.value = result.data.rows
+    } else {// 获取失败
+        ElMessage.error(result.msg || '获取订单数据失败')
+    }
+}
+// 获取处理完成订单
+const getAllFinished = async () => { 
+    const result = await queryAllFinished(currentPage2.value,pageSize2.value)
     if (result.code) {// 获取成功
         total.value = result.data.total
         OrderList.value = result.data.rows

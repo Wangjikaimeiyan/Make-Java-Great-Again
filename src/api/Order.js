@@ -10,3 +10,9 @@ export const queryAllNotPay = ((pageNum,pageSize) => request.get(`/Order/allNotP
 // 查询未接单订单
 export const queryAllNotFinish = ((pageNum,pageSize) => request.get(`/Order/allNotFinish?pageNum=${pageNum}&pageSize=${pageSize}`))
 
+// 查询进行中订单
+export const queryAllInProgress = ((pageNum,pageSize) => request.get(`/Order/allInProgress?pageNum=${pageNum}&pageSize=${pageSize}`))
+
+// 已完成
+export const queryAllFinished = ((pageNum,pageSize) => request.get(`/Order/allFinished?pageNum=${pageNum}&pageSize=${pageSize}`))
+
