@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue' // 1. 导入 onUnmounted
-import { queryAllSales,queryAllNotPay,queryAllNotFinish,queryAllInProgress,queryAllFinished,acceptOrder,rejectOrder } from '@/api/Order'
-import { ElMessage,ElMessageBox } from 'element-plus' // 2. 导入 ElMessage
+import { queryAllSales, queryAllNotPay, queryAllNotFinish, queryAllInProgress, queryAllFinished, acceptOrder, rejectOrder, finishOrder } from '@/api/Order'
+import { ElMessage, ElMessageBox } from 'element-plus' // 2. 导入 ElMessage
 
 const temp = ref('A')
 // *****************************************分页**************************************************
@@ -130,8 +130,8 @@ onUnmounted(() => {
 // **********************************************订单列表************************************************
 const OrderList = ref([])
 // 获取未支付订单
-const getAllNotPay = async () => { 
-    const result = await queryAllNotPay(currentPage2.value,pageSize2.value)
+const getAllNotPay = async () => {
+    const result = await queryAllNotPay(currentPage2.value, pageSize2.value)
     if (result.code) {// 获取成功
         total.value = result.data.total
         OrderList.value = result.data.rows
@@ -140,8 +140,8 @@ const getAllNotPay = async () => {
     }
 }
 // 获取接单订单
-const getAllNotFinish = async () => { 
-    const result = await queryAllNotFinish(currentPage2.value,pageSize2.value)
+const getAllNotFinish = async () => {
+    const result = await queryAllNotFinish(currentPage2.value, pageSize2.value)
     if (result.code) {// 获取成功
         total.value = result.data.total
         OrderList.value = result.data.rows
@@ -150,8 +150,8 @@ const getAllNotFinish = async () => {
     }
 }
 // 获取处理中订单
-const getAllInProgress = async () => { 
-    const result = await queryAllInProgress(currentPage2.value,pageSize2.value)
+const getAllInProgress = async () => {
+    const result = await queryAllInProgress(currentPage2.value, pageSize2.value)
     if (result.code) {// 获取成功
         total.value = result.data.total
         OrderList.value = result.data.rows
@@ -160,8 +160,8 @@ const getAllInProgress = async () => {
     }
 }
 // 获取处理完成订单
-const getAllFinished = async () => { 
-    const result = await queryAllFinished(currentPage2.value,pageSize2.value)
+const getAllFinished = async () => {
+    const result = await queryAllFinished(currentPage2.value, pageSize2.value)
     if (result.code) {// 获取成功
         total.value = result.data.total
         OrderList.value = result.data.rows
@@ -185,49 +185,73 @@ const handleShowpicture = () => {
 // **********************************************订单交互功能************************************************
 // 接单
 const handleAcceptOrder = async (id) => {
-  try {
-    // 弹出确认框，只有点确定才往下走
-    await ElMessageBox.confirm('确定要接单吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    })
+    try {
+        // 弹出确认框，只有点确定才往下走
+        await ElMessageBox.confirm('确定要接单吗？', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning',
+        })
 
-    // 走到这里 = 用户点了确定
-    const res = await acceptOrder(id)
-    if (res.code) {
-      ElMessage.success(res.data)
-      getAllNotFinish() // 刷新列表
-    } else {
-      ElMessage.error(res.msg)
+        // 走到这里 = 用户点了确定
+        const res = await acceptOrder(id)
+        if (res.code) {
+            ElMessage.success(res.data)
+            getAllNotFinish() // 刷新列表
+        } else {
+            ElMessage.error(res.msg)
+        }
+    } catch {
+        // 用户点取消、关闭弹窗，直接进这里，什么都不执行
+        ElMessage.info('已取消接单')
     }
-  } catch {
-    // 用户点取消、关闭弹窗，直接进这里，什么都不执行
-    ElMessage.info('已取消接单')
-  }
 }
 // 拒绝接单
-const handleRejectOrder = async (id) => { 
+const handleRejectOrder = async (id) => {
     try {
-    // 弹出确认框，只有点确定才往下走
-    await ElMessageBox.confirm('确定要拒绝接单吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    })
+        // 弹出确认框，只有点确定才往下走
+        await ElMessageBox.confirm('确定要拒绝接单吗？', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning',
+        })
 
-    // 走到这里 = 用户点了确定
-    const res = await rejectOrder(id)
-    if (res.code) {
-      ElMessage.success(res.data)
-      getAllNotFinish() // 刷新列表
-    } else {
-      ElMessage.error(res.msg)
+        // 走到这里 = 用户点了确定
+        const res = await rejectOrder(id)
+        if (res.code) {
+            ElMessage.success(res.data)
+            getAllNotFinish() // 刷新列表
+        } else {
+            ElMessage.error(res.msg)
+        }
+    } catch {
+        // 用户点取消、关闭弹窗，直接进这里，什么都不执行
+        ElMessage.info('已取消拒单')
     }
-  } catch {
-    // 用户点取消、关闭弹窗，直接进这里，什么都不执行
-    ElMessage.info('已取消拒单')
-  }
+}
+// 完成订单
+const handleFinishOrder = async (id) => {
+    try {
+        // 弹出确认框，只有点确定才往下走
+        await ElMessageBox.confirm('确定要完成订单吗？', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning',
+        })
+
+        // 走到这里 = 用户点了确定
+        const res = await finishOrder(id)
+        if (res.code) {
+            ElMessage.success(res.data)
+            // 刷新进行中
+            getAllInProgress()
+        } else {
+            ElMessage.error(res.msg)
+        }
+    } catch {
+        // 用户点取消、关闭弹窗，直接进这里，什么都不执行
+        ElMessage.info('已取消完成订单')
+    }
 }
 // **********************************************订单交互功能************************************************
 
@@ -240,7 +264,7 @@ const handleRejectOrder = async (id) => {
             <!-- 左侧 -->
             <div class="left-container">
                 <!-- 此处用来显示订单选项,未完成、正处理、已完成 -->
-                <div class = "top-container">
+                <div class="top-container">
                     <el-radio-group class="top-tap" v-model="temp" @change="handlequery">
                         <!-- A绑定未支付订单调查函数 -->
                         <el-radio-button label="A">未支付</el-radio-button>
@@ -250,7 +274,8 @@ const handleRejectOrder = async (id) => {
                     </el-radio-group>
                     <span class="label">
                         搜索订单:
-                    <el-input v-model="input1" class="responsive-input" placeholder="请输入订单id" :prefix-icon="Search" />
+                        <el-input v-model="input1" class="responsive-input" placeholder="请输入订单id"
+                            :prefix-icon="Search" />
 
                     </span>
                 </div>
@@ -264,50 +289,54 @@ const handleRejectOrder = async (id) => {
                             <!-- 左：正方形图片区 -->
                             <div class="left-img">
                                 <!-- TODO: 添加图片点击事件 -->
-                                <img :src="item.userUrl" alt="user" class="img-square" @click.self="handleShowpicture" />
+                                <img :src="item.userUrl" alt="user" class="img-square"
+                                    @click.self="handleShowpicture" />
                             </div>
 
                             <!-- 中：（左侧用户名称，订单编号，下单时间，用户备注。中间：菜品名称······*数量），右侧小计，操作按钮 -->
                             <div class="center-info">
-                                <div class="Order-info"  @click.self="handleShowDetail">
+                                <div class="Order-info" @click.self="handleShowDetail">
                                     <!-- 用户名称 -->
-                                     <div>用户名称：{{item.nickName}}</div>
-                                     <div>订单编号：{{item.orderId}}</div>
-                                     <div>下单时间：{{item.orderTime}}</div>
-                                     <div class="remark">用户备注：{{ item.remark }}</div>
+                                    <div>用户名称：{{ item.nickName }}</div>
+                                    <div>订单编号：{{ item.orderId }}</div>
+                                    <div>下单时间：{{ item.orderTime }}</div>
+                                    <div class="remark">用户备注：{{ item.remark }}</div>
                                 </div>
-                                <div class="order-detail"  @click.self="handleShowDetail">
-                           <!-- 单个菜品行 -->
-                                 <div class="dish-row" v-for="dish in item.dishesDtos" :key="dish.dishNum">
-                                 <!-- <div class="dish-row"> -->
-                                    <span class="dish-name1">{{ dish.dishName }}</span>
-                                    <span class="dish-dots"></span>
-                                    <span class="dish-count1">×{{dish.dishNum}}</span>
-                                        </div>
+                                <div class="order-detail" @click.self="handleShowDetail">
+                                    <!-- 单个菜品行 -->
+                                    <div class="dish-row" v-for="dish in item.dishesDtos" :key="dish.dishNum">
+                                        <!-- <div class="dish-row"> -->
+                                        <span class="dish-name1">{{ dish.dishName }}</span>
+                                        <span class="dish-dots"></span>
+                                        <span class="dish-count1">×{{ dish.dishNum }}</span>
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- 右：操作按钮 -->
                             <div class="right-action" @click.self="handleShowDetail">
                                 <!-- 小计 -->
-                                 <div class="total">小计：{{ item.totalPrice }}</div>
-                                 <div v-if="temp === 'A'">
+                                <div class="total">小计：{{ item.totalPrice }}</div>
+                                <div v-if="temp === 'A'">
                                     <div class="A-st">等待用户付款······</div>
-                                 </div>
-                                 <div v-else-if="temp === 'B'">
-                                <el-button type="primary" @click="handleAcceptOrder(item.orderId)" icon="Edit" class="button1">接单</el-button>
-                                <el-button type="danger" @click="handleRejectOrder(item.orderId)" icon="Delete" class="button1">拒单</el-button>
-                            </div>
-                            <div v-else-if="temp === 'C'">
-                                <!-- 编辑 按钮 -->
-                                <el-button type="primary" @click="" icon="Edit" class="C-st">完成</el-button>
-                            </div>
-                            <div v-else-if="temp === 'D'">
-                                <div v-if="item.status==='4'" class="A-st">取消已订单</div>
-                                <!-- 编辑 按钮 -->
-                                <!-- <el-button type="danger" @click="" icon="Edit" class="D-st">售后服务</el-button> -->
-                                <el-button v-else-if="item.status==='3'" type="danger" @click="" icon="Edit" class="D-st">售后服务</el-button>
-                            </div>
+                                </div>
+                                <div v-else-if="temp === 'B'">
+                                    <el-button type="primary" @click="handleAcceptOrder(item.orderId)" icon="Edit"
+                                        class="button1">接单</el-button>
+                                    <el-button type="danger" @click="handleRejectOrder(item.orderId)" icon="Delete"
+                                        class="button1">拒单</el-button>
+                                </div>
+                                <div v-else-if="temp === 'C'">
+                                    <!-- 编辑 按钮 -->
+                                    <el-button type="primary" @click="handleFinishOrder(item.orderId)" icon="Edit" class="C-st">完成</el-button>
+                                </div>
+                                <div v-else-if="temp === 'D'">
+                                    <div v-if="item.status === '4'" class="A-st">取消已订单</div>
+                                    <!-- 编辑 按钮 -->
+                                    <!-- <el-button type="danger" @click="" icon="Edit" class="D-st">售后服务</el-button> -->
+                                    <el-button v-else-if="item.status === '3'" type="danger" @click="" icon="Edit"
+                                        class="D-st">售后服务</el-button>
+                                </div>
                             </div>
                         </div>
                     </el-card>
@@ -490,12 +519,13 @@ const handleRejectOrder = async (id) => {
 }
 
 /* **********************************订单状态区域************************************** */
-.top-container{
+.top-container {
     /* 弹性布局 */
     display: flex;
     /* 横向布局 */
     flex-direction: row;
 }
+
 .top-tap {
     flex: 4;
     /*顶部标签 */
@@ -504,16 +534,18 @@ const handleRejectOrder = async (id) => {
     margin-left: 40px;
     margin-top: 10px;
 }
+
 .label {
     /* flex: 5; */
-  /* margin-top: 5px; */
-  white-space: nowrap;
-  color: var(--el-text-color-regular);
-  margin-top: 10px;
-  margin-right: 30px;
+    /* margin-top: 5px; */
+    white-space: nowrap;
+    color: var(--el-text-color-regular);
+    margin-top: 10px;
+    margin-right: 30px;
 }
+
 .responsive-input {
-  width: 240px;
+    width: 240px;
 }
 
 /* **********************************订单状态区域************************************** */
@@ -675,114 +707,143 @@ const handleRejectOrder = async (id) => {
     /* 高度限制 */
     height: 100%;
 }
+
 .Order-info {
     flex: 5;
     width: 100%;
     margin-right: 60px;
     /* 新增：防止子元素撑开父容器 */
-    min-width: 0; 
-    overflow: hidden; /* 确保父容器也隐藏溢出 */
+    min-width: 0;
+    overflow: hidden;
+    /* 确保父容器也隐藏溢出 */
     /* 黑体 */
     font-family: "黑体";
     /* 字体大小 */
     font-size: 15px;
 }
+
 .remark {
     /* 1. 强制文本在一行内显示，不换行 */
     white-space: nowrap;
-    
+
     /* 2. 隐藏超出容器宽度的内容 */
     overflow: hidden;
-    
+
     /* 3. 当文本溢出时，显示省略号 (...) */
     text-overflow: ellipsis;
-    
+
     /* 4. (重要) 必须设置一个最大宽度或宽度，否则它会无限撑开父容器 */
-    width: 100%; 
+    width: 100%;
     /* 或者使用 max-width: 200px; 根据你的布局需求调整 */
 }
+
 /* *****************Order-detail******************* */
 /* 订单详情容器 */
 .order-detail {
     flex: 6;
     overflow-y: auto;
 }
+
 .order-detail::-webkit-scrollbar {
-    width: 6px; /* 设置滚动条宽度 */
+    width: 6px;
+    /* 设置滚动条宽度 */
 }
+
 .order-detail::-webkit-scrollbar-thumb {
-    background-color: #ccc; /* 滚动条滑块颜色 */
-    border-radius: 3px; /* 圆角 */
+    background-color: #ccc;
+    /* 滚动条滑块颜色 */
+    border-radius: 3px;
+    /* 圆角 */
 }
+
 .order-detail::-webkit-scrollbar-thumb {
-    background-color: #ccc; /* 滚动条滑块颜色 */
-    border-radius: 3px; /* 圆角 */
+    background-color: #ccc;
+    /* 滚动条滑块颜色 */
+    border-radius: 3px;
+    /* 圆角 */
 }
 
 /* 每一行菜品的容器 */
 .dish-row {
     display: flex;
-    align-items: baseline; /* 基线对齐，让文字底部对齐 */
+    align-items: baseline;
+    /* 基线对齐，让文字底部对齐 */
     width: 100%;
-    margin-bottom: 4px; /* 行间距 */
+    margin-bottom: 4px;
+    /* 行间距 */
     font-size: 14px;
     color: #333;
 }
 
 /* 左侧：菜品名称 */
 .dish-name1 {
-    white-space: nowrap; /* 防止名字换行 */
+    white-space: nowrap;
+    /* 防止名字换行 */
     overflow: hidden;
-    text-overflow: ellipsis; /* 如果名字太长，显示省略号 */
-    max-width: 60%; /* 限制最大宽度，防止挤压右边 */
+    text-overflow: ellipsis;
+    /* 如果名字太长，显示省略号 */
+    max-width: 60%;
+    /* 限制最大宽度，防止挤压右边 */
 }
 
 /* 中间：点状填充 */
 .dish-dots {
-    flex: 1; /* 占据剩余所有空间 */
-    border-bottom: 3px dotted #ccc; /* 使用虚线模拟点状填充 */
-    margin: 0 8px; /* 左右留一点空隙 */
+    flex: 1;
+    /* 占据剩余所有空间 */
+    border-bottom: 3px dotted #ccc;
+    /* 使用虚线模拟点状填充 */
+    margin: 0 8px;
+    /* 左右留一点空隙 */
     position: relative;
-    top: -4px; /* 微调虚线位置，使其视觉上居中于文字之间 */
+    top: -4px;
+    /* 微调虚线位置，使其视觉上居中于文字之间 */
 }
 
 /* 右侧：数量 */
 .dish-count1 {
     white-space: nowrap;
     font-weight: bold;
-    color: #ff7b7b; /* 强调色 */
+    color: #ff7b7b;
+    /* 强调色 */
     margin-right: 20px;
 }
+
 /* *****************Order-detail******************* */
 
 
 .right-action {
     flex: 3;
 }
-.total{
+
+.total {
     color: red;
-     font-size: 20px;
-     /* 居中 */
-     margin-left: 15%;
-     margin-top: 10%;
+    font-size: 20px;
+    /* 居中 */
+    margin-left: 15%;
+    margin-top: 10%;
 }
-.A-st{
+
+.A-st {
     margin-top: 25%;
     /* 灰色 */
     color: gray;
     text-align: center;
 }
+
 .button1 {
     margin-top: 25%;
     text-align: center;
 }
-.C-st{
+
+.C-st {
     margin-top: 25%;
     margin-left: 30%;
 }
-.D-st{
+
+.D-st {
     margin-top: 25%;
     margin-left: 20%;
 }
+
 /*------------------------------ 订单列表 --------------------------------------*/
 </style>

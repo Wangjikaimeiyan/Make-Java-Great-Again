@@ -22,3 +22,6 @@ export const acceptOrder = (orderId) => request.post(`/Order/acceptOrder?orderId
 // rejectOrder拒绝接单
 export const rejectOrder = (orderId) => request.post(`/Order/rejectOrder?orderId=${orderId}`)
 
+// 完成进行中的订单
+export const finishOrder = (orderId) => request.post(`/Order/finishOrder?orderId=${orderId}`)
+
