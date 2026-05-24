@@ -25,3 +25,6 @@ export const rejectOrder = (orderId) => request.post(`/Order/rejectOrder?orderId
 // 完成进行中的订单
 export const finishOrder = (orderId) => request.post(`/Order/finishOrder?orderId=${orderId}`)
 
+// 根据订单id查询订单
+export const queryOrderById = (orderId) => request.get(`/Order/queryOrderById?orderId=${orderId}`)
+

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue' // 1. 导入 onUnmounted
-import { queryAllSales, queryAllNotPay, queryAllNotFinish, queryAllInProgress, queryAllFinished, acceptOrder, rejectOrder, finishOrder } from '@/api/Order'
+import { queryAllSales, queryAllNotPay, queryAllNotFinish, queryAllInProgress, queryAllFinished, acceptOrder, rejectOrder, finishOrder,queryOrderById } from '@/api/Order'
 import { ElMessage, ElMessageBox } from 'element-plus' // 2. 导入 ElMessage
 
 const temp = ref('A')
@@ -171,16 +171,14 @@ const getAllFinished = async () => {
 }
 // **********************************************订单列表************************************************
 // **********************************************展示订单详情************************************************
-const handleShowDetail = () => {
-    // console.log("查看订单详情")
-    // elMessage.info('查看订单详情')
-    ElMessage.info('查看订单详情')
+// 打开订单详情
+const handleShowDetail = async (orderId) => {
+    // 如果你后面要调接口，就在这里 queryOrderById(item.orderId)
+    getOrderById(orderId)
+    // 这里先直接用示例数据演示
+    detailDialogVisible.value = true
 }
-const handleShowpicture = () => {
-    // console.log("查看图片")
-    // elMessage.info('查看图片')
-    ElMessage.info('查看图片')
-}
+
 // **********************************************展示订单详情************************************************
 // **********************************************订单交互功能************************************************
 // 接单
@@ -254,8 +252,36 @@ const handleFinishOrder = async (id) => {
     }
 }
 // **********************************************订单交互功能************************************************
+// **********************************************订单详情对话弹窗************************************************
+// TODO: 订单详情对话框
+// 对话框显示控制
+const detailDialogVisible = ref(false)
 
-// *****************************************菜品销量榜单**************************************************
+// 当前订单详情数据（示例）
+const currentOrderDetail = ref({})
+
+
+// 点击确定
+const handleDetailConfirm = () => {
+    detailDialogVisible.value = false
+    // 清空订单详情数据
+    currentOrderDetail.value = {}
+    ElMessage.success('已确认')
+}
+
+// **********************************************订单详情对话弹窗************************************************
+// **********************************************根据orderid查询订单详情************************************************
+const getOrderById = async (orderId) => { 
+    const result = await queryOrderById(orderId)
+    if (result.code) { 
+        currentOrderDetail.value = result.data
+    } else {// 获取失败
+        ElMessage.error(result.msg || '获取订单数据失败')
+    }
+}
+// **********************************************根据orderid查询订单详情************************************************
+
+
 </script>
 
 <template>
@@ -283,26 +309,24 @@ const handleFinishOrder = async (id) => {
                 <div class="demo-input-with-icon">
                     <el-card v-for="item in OrderList" :key="item.orderId">
 
-                        <div class="card-body-wrapper" @click.self="handleShowDetail">
+                        <div class="card-body-wrapper" @click.self="handleShowDetail(item.orderId)">
                             <!-- <template #header>Yummy hamburger</template>头部，名字 -->
                             <!-- 分为左中右三部分，左边图片，右边描述，最右边按钮 -->
                             <!-- 左：正方形图片区 -->
                             <div class="left-img">
-                                <!-- TODO: 添加图片点击事件 -->
-                                <img :src="item.userUrl" alt="user" class="img-square"
-                                    @click.self="handleShowpicture" />
+                                <img :src="item.userUrl" alt="user" class="img-square" />
                             </div>
 
                             <!-- 中：（左侧用户名称，订单编号，下单时间，用户备注。中间：菜品名称······*数量），右侧小计，操作按钮 -->
                             <div class="center-info">
-                                <div class="Order-info" @click.self="handleShowDetail">
+                                <div class="Order-info" @click.self="handleShowDetail(item.orderId)">
                                     <!-- 用户名称 -->
                                     <div>用户名称：{{ item.nickName }}</div>
                                     <div>订单编号：{{ item.orderId }}</div>
                                     <div>下单时间：{{ item.orderTime }}</div>
                                     <div class="remark">用户备注：{{ item.remark }}</div>
                                 </div>
-                                <div class="order-detail" @click.self="handleShowDetail">
+                                <div class="order-detail" @click.self="handleShowDetail(item.orderId)">
                                     <!-- 单个菜品行 -->
                                     <div class="dish-row" v-for="dish in item.dishesDtos" :key="dish.dishNum">
                                         <!-- <div class="dish-row"> -->
@@ -314,7 +338,7 @@ const handleFinishOrder = async (id) => {
                             </div>
 
                             <!-- 右：操作按钮 -->
-                            <div class="right-action" @click.self="handleShowDetail">
+                            <div class="right-action" @click.self="handleShowDetail(item.orderId)">
                                 <!-- 小计 -->
                                 <div class="total">小计：{{ item.totalPrice }}</div>
                                 <div v-if="temp === 'A'">
@@ -399,6 +423,85 @@ const handleFinishOrder = async (id) => {
 
         </div>
     </div>
+
+<!-- 订单详情对话框 -->
+<!-- 订单详情对话框 -->
+<el-dialog
+    v-model="detailDialogVisible"
+    title="订单详情"
+    width="70%"
+    class="order-detail-dialog"
+    destroy-on-close
+>
+    <div class="detail-dialog-body">
+        <!-- 左侧 -->
+        <div class="detail-left">
+            <div class="detail-left-title">用户信息</div>
+
+            <div class="detail-info-item">
+                <span class="detail-label">用户名称：</span>
+                <span class="detail-value">{{ currentOrderDetail.nickName }}</span>
+            </div>
+
+            <div class="detail-info-item">
+                <span class="detail-label">订单编号：</span>
+                <span class="detail-value order-id-text">{{ currentOrderDetail.orderId }}</span>
+            </div>
+
+            <div class="detail-info-item">
+                <span class="detail-label">下单时间：</span>
+                <span class="detail-value">{{ currentOrderDetail.orderTime }}</span>
+            </div>
+            
+            <div class="detail-info-item">
+                <span class="detail-label">总价格：</span>
+                <span class="detail-value">￥{{ currentOrderDetail.totalPrice }}</span>
+            </div>
+
+            <div class="detail-remark-block">
+                <div class="detail-label remark-label">用户备注：</div>
+                <div class="detail-remark-content">
+                    {{ currentOrderDetail.remark || '无备注' }}
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧 -->
+        <div class="detail-right">
+            <div class="detail-right-title">菜品信息</div>
+
+            <div class="detail-dish-list">
+                <div
+                    class="detail-dish-card"
+                    v-for="dish in currentOrderDetail.dishesDtos"
+                    :key="dish.DishId"
+                >
+                    <!-- 左：图片 -->
+                    <div class="detail-dish-img-box">
+                        <img :src="dish.url" alt="dish" class="detail-dish-img" />
+                    </div>
+
+                    <!-- 中右：文字 -->
+                    <div class="detail-dish-info">
+                        <span class="detail-dish-name">{{ dish.dishName }}</span>
+                        <div class="detail-dish-top">
+                            <span class="detail-dish-price">￥{{ dish.price }}</span>
+                            <div class="detail-dish-bottom">
+                                数量：×{{ dish.dishNum }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <template #footer>
+        <div class="detail-dialog-footer">
+            <el-button type="primary" @click="handleDetailConfirm">确定</el-button>
+        </div>
+    </template>
+</el-dialog>
 
 </template>
 
@@ -846,4 +949,188 @@ const handleFinishOrder = async (id) => {
 }
 
 /*------------------------------ 订单列表 --------------------------------------*/
+/*------------------------------ 订单详情 --------------------------------------*/
+/* **********************************************订单详情对话框************************************************ */
+
+.order-detail-dialog :deep(.el-dialog__body) {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.detail-dialog-body {
+    display: flex;
+    gap: 20px;
+    height: 520px;
+    min-height: 520px;
+}
+
+/* 左侧 1份 */
+.detail-left {
+    flex: 1;
+    border: 1px solid #ebeef5;
+    border-radius: 10px;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background-color: #fafafa;
+}
+
+/* 右侧 2份 */
+.detail-right {
+    flex: 2;
+    border: 1px solid #ebeef5;
+    border-radius: 10px;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background-color: #ffffff;
+}
+
+.detail-left-title,
+.detail-right-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #385e6e;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.detail-info-item {
+    margin-bottom: 18px;
+    font-size: 15px;
+    line-height: 24px;
+    color: #333;
+    word-break: break-all;
+}
+
+.detail-label {
+    font-weight: bold;
+    color: #385e6e;
+}
+
+.detail-value {
+    color: #333;
+}
+
+.order-id-text {
+    word-break: break-all;
+}
+
+/* 备注区域：固定占较大空间，接近底部 */
+.detail-remark-block {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.remark-label {
+    margin-bottom: 10px;
+}
+
+.detail-remark-content {
+    flex: 1;
+    border: 1px solid #dcdfe6;
+    border-radius: 8px;
+    background-color: #fff;
+    padding: 12px;
+    box-sizing: border-box;
+    color: #606266;
+    line-height: 22px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    min-height: 260px;
+}
+
+/* 右侧菜品列表 */
+.detail-dish-list {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+.detail-dish-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.detail-dish-list::-webkit-scrollbar-thumb {
+    background-color: #c0c4cc;
+    border-radius: 4px;
+}
+
+.detail-dish-card {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ebeef5;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+    background-color: #fafafa;
+}
+
+.detail-dish-img-box {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+    margin-right: 15px;
+}
+
+.detail-dish-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+}
+
+.detail-dish-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+}
+
+.detail-dish-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 10px;
+}
+
+.detail-dish-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #303133;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.detail-dish-price {
+    color: #f56c6c;
+    font-size: 16px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.detail-dish-bottom {
+    font-size: 14px;
+    color: #606266;
+}
+
+.detail-dialog-footer {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+/* **********************************************订单详情对话框************************************************ */
+/*------------------------------ 订单详情 --------------------------------------*/
 </style>
