@@ -280,12 +280,16 @@ const getOrderById = async (orderId) => {
     }
 }
 // **********************************************根据orderid查询订单详情************************************************
+// **********************************************根据inputOrderId查询订单详情************************************************
+const inputOrderId = ref('')
+// **********************************************根据inputOrderId查询订单详情************************************************
 
 
 </script>
 
 <template>
     <div>
+        {{  inputOrderId  }}
         <div class="home-container">
             <!-- 左侧 -->
             <div class="left-container">
@@ -300,8 +304,9 @@ const getOrderById = async (orderId) => {
                     </el-radio-group>
                     <span class="label">
                         搜索订单:
-                        <el-input v-model="input1" class="responsive-input" placeholder="请输入订单id"
+                        <el-input v-model="inputOrderId" class="responsive-input" placeholder="请输入订单id"
                             :prefix-icon="Search" />
+                            <el-button type="primary" @click="handleShowDetail(inputOrderId)">查询</el-button>
 
                     </span>
                 </div>
@@ -649,6 +654,7 @@ const getOrderById = async (orderId) => {
 
 .responsive-input {
     width: 240px;
+    margin-right: 15px;
 }
 
 /* **********************************订单状态区域************************************** */
