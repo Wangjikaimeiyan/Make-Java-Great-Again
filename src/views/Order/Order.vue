@@ -1050,7 +1050,7 @@ const inputOrderId = ref('')
     overflow-y: auto;
     white-space: pre-wrap;
     word-break: break-word;
-    min-height: 260px;
+    min-height: 200px;
 }
 
 /* 右侧菜品列表 */
