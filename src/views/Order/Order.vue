@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue' // 1. 导入 onUnmounted
-import { queryAllSales, queryAllNotPay, queryAllNotFinish, queryAllInProgress, queryAllFinished, acceptOrder, rejectOrder, finishOrder,queryOrderById } from '@/api/Order'
+import { queryAllSales, queryAllNotPay, queryAllNotFinish, queryAllInProgress, queryAllFinished, 
+    acceptOrder, rejectOrder, finishOrder,queryOrderById,queryTodayTurnover,queryAllTurnover } from '@/api/Order'
 import { ElMessage, ElMessageBox } from 'element-plus' // 2. 导入 ElMessage
 
 const temp = ref('A')
@@ -107,6 +108,8 @@ const fetchSalesData = async () => {
 }
 
 let timer = null // 用于存储定时器ID
+let timer2 = null
+let timer3 = null
 
 onMounted(() => {
     // 1. 立即执行一次获取数据
@@ -118,6 +121,17 @@ onMounted(() => {
     timer = setInterval(() => {
         fetchSalesData()
     }, 60000)  // 60秒 = 60000毫秒
+
+    // 获取营业额
+    getAllTurnover()
+    getTodayTurnover()
+    // 每日营业额10分钟获取一次，总的营业额12小时获取一次
+    timer2 = setInterval(() => {
+        getTodayTurnover()
+    }, 600000)
+    timer3 = setInterval(() => {
+        getAllTurnover()
+    }, 43200000)
 })
 
 // 3. 组件卸载时清除定时器，防止内存泄漏
@@ -125,6 +139,14 @@ onUnmounted(() => {
     if (timer) {
         clearInterval(timer)
         timer = null
+    }
+    if (timer2) {
+        clearInterval(timer2)
+        timer2 = null
+    }
+    if (timer3) {
+        clearInterval(timer3)
+        timer3 = null
     }
 })
 // **********************************************订单列表************************************************
@@ -253,7 +275,6 @@ const handleFinishOrder = async (id) => {
 }
 // **********************************************订单交互功能************************************************
 // **********************************************订单详情对话弹窗************************************************
-// TODO: 订单详情对话框
 // 对话框显示控制
 const detailDialogVisible = ref(false)
 
@@ -283,6 +304,28 @@ const getOrderById = async (orderId) => {
 // **********************************************根据inputOrderId查询订单详情************************************************
 const inputOrderId = ref('')
 // **********************************************根据inputOrderId查询订单详情************************************************
+// **********************************************今日营业额和总营业额************************************************
+const todayTurnover = ref(0)
+const allTurnover = ref(0)
+// 获取今日营业额
+const getTodayTurnover = async () => { 
+    const result = await queryTodayTurnover()
+    if (result.code) { 
+        todayTurnover.value = result.data
+    } else if (result.data === null){// 获取失败
+        ElMessage.error(result.msg || '获取今日营业额数据失败')
+    }
+}
+// 获取总营业额
+const getAllTurnover = async () => { 
+    const result = await queryAllTurnover()
+    if (result.code) { 
+        allTurnover.value = result.data
+    } else if (result.data === null) {// 获取失败
+        ElMessage.error(result.msg || '获取总营业额数据失败')
+    }
+}
+// **********************************************今日营业额和总营业额************************************************
 
 
 </script>
@@ -391,10 +434,10 @@ const inputOrderId = ref('')
                         <div class="amount-item-title1">数据监测</div>
                     </div>
                     <div class="amount-item">
-                        <div class="amount-item-title">&nbsp;&nbsp;&nbsp;&nbsp;今日营业额:￥{{ }}</div>
+                        <div class="amount-item-title">&nbsp;&nbsp;&nbsp;&nbsp;今日营业额:￥{{ todayTurnover }}</div>
                     </div>
                     <div class="amount-item">
-                        <div class="amount-item-title">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;总营业额:￥{{ }}</div>
+                        <div class="amount-item-title">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;总营业额:￥{{ allTurnover }}</div>
                     </div>
                 </div>
                 <!-- 右侧下方是渲染菜品销量排行区域 -->

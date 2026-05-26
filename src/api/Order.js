@@ -28,3 +28,9 @@ export const finishOrder = (orderId) => request.post(`/Order/finishOrder?orderId
 // 根据订单id查询订单
 export const queryOrderById = (orderId) => request.get(`/Order/queryOrderById?orderId=${orderId}`)
 
+// 查询今日营业额
+export const queryTodayTurnover = () => request.get(`/Order/TodayTurnover`)
+
+// 查询总营业额
+export const queryAllTurnover = () => request.get(`/Order/AllTurnover`)
+
