@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue' // 1. 导入 onUnmounted
 import { queryAllSales, queryAllNotPay, queryAllNotFinish, queryAllInProgress, queryAllFinished, 
-    acceptOrder, rejectOrder, finishOrder,queryOrderById,queryTodayTurnover,queryAllTurnover } from '@/api/Order'
+    acceptOrder, rejectOrder, finishOrder,queryOrderById,queryTodayTurnover,queryAllTurnover,serviceOrder } from '@/api/Order'
 import { ElMessage, ElMessageBox } from 'element-plus' // 2. 导入 ElMessage
 
 const temp = ref('A')
@@ -326,7 +326,31 @@ const getAllTurnover = async () => {
     }
 }
 // **********************************************今日营业额和总营业额************************************************
+// **********************************************售后服务************************************************
+const handleServiceOrder = async (id) => { 
+    try {
+        // 弹出确认框，只有点确定才往下走
+        await ElMessageBox.confirm('确定要处理退款吗？', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning',
+        })
 
+        // 走到这里 = 用户点了确定
+        const res = await serviceOrder(id)
+        if (res.code) {
+            ElMessage.success(res.data)
+            // 重新获取已完成订单
+            getAllFinished()
+        } else {
+            ElMessage.error(res.msg)
+        }
+    } catch {
+        // 用户点取消、关闭弹窗，直接进这里，什么都不执行
+        ElMessage.info('已取消售后处理')
+    }
+}
+// **********************************************售后服务************************************************
 
 </script>
 
@@ -406,7 +430,7 @@ const getAllTurnover = async () => {
                                     <div v-if="item.status === '4'" class="A-st">取消已订单</div>
                                     <!-- 编辑 按钮 -->
                                     <!-- <el-button type="danger" @click="" icon="Edit" class="D-st">售后服务</el-button> -->
-                                    <el-button v-else-if="item.status === '3'" type="danger" @click="" icon="Edit"
+                                    <el-button v-else-if="item.status === '3'" type="danger" @click="handleServiceOrder(item.orderId)" icon="Edit"
                                         class="D-st">售后服务</el-button>
                                 </div>
                             </div>

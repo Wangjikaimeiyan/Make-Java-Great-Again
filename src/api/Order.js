@@ -34,3 +34,5 @@ export const queryTodayTurnover = () => request.get(`/Order/TodayTurnover`)
 // 查询总营业额
 export const queryAllTurnover = () => request.get(`/Order/AllTurnover`)
 
+// 退款serviceOrder
+export const serviceOrder = (orderId) => request.post(`/Order/serviceOrder?orderId=${orderId}`)
