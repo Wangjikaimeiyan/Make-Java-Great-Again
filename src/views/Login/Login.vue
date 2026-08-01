@@ -3,6 +3,8 @@ import { ref } from 'vue'
 import { loginApi } from '@/api/login'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+// =========新增导入全局ws方法==========
+import { initGlobalWs } from '@/utils/wsGlobal'
 
 const loginForm = ref({ account: '', password: '' })
 const router = useRouter()
@@ -35,26 +37,26 @@ const particleOptions = {
     },
     links: {
       enable: true,          // 开启连线
-      distance: 130,        // 连线最大距离
-      color: "#ffaa66",     // 连线基础颜色
+      distance: 130,         // 连线最大距离
+      color: "#ffaa66",      // 连线基础颜色
       opacity: 0.4,
       width: 1.2,
       triangles: { enable: false }, // 三角形网格（如果开启会形成三角面，也可尝试）
     },
     move: {
       enable: true,
-      speed: 1.5,           // 运动速度
-      direction: "none",    // 随机方向
-      random: true,         // 随机移动
+      speed: 1.5,            // 运动速度
+      direction: "none",     // 随机方向
+      random: true,          // 随机移动
       straight: false,
       outModes: {
-        default: "bounce",  // 边界反弹（也可用 "out" 循环）
+        default: "bounce",   // 边界反弹（也可用 "out" 循环）
       },
       attract: { enable: false },
     },
     number: {
       density: { enable: true, area: 800 },
-      value: 80,            // 粒子数量（根据性能可调整）
+      value: 80,             // 粒子数量（根据性能可调整）
     },
     opacity: {
       value: 0.6,
@@ -78,13 +80,23 @@ const particleOptions = {
   detectRetina: true,
 }
 
-// 登录方法（与之前相同）
+// 登录方法【核心改造】
 const login = async () => {
   try {
     const result = await loginApi(loginForm.value)
     if (result.code === 200 || result.code) {
       ElMessage.success('登入成功')
+      // 存储token
       localStorage.setItem('loginToken', JSON.stringify(result.data))
+
+      // ======================新增代码 初始化WebSocket======================
+      const tokenData = result.data
+      const baseWsUrl = 'ws://127.0.0.1:8080/ws'
+      const wsUrl = `${baseWsUrl}/${tokenData.token}`
+      initGlobalWs(wsUrl)
+
+      // ==================================================================
+
       router.push('/layout')
     } else {
       ElMessage.error(result.msg || '登录失败')
@@ -107,10 +119,7 @@ const clear = () => {
     <div class="wave-bg"></div>
 
     <!-- 粒子层（全局注册后直接使用） -->
-    <Particles
-      id="particle-bg"
-      :options="particleOptions"
-    />
+    <Particles id="particle-bg" :options="particleOptions" />
 
     <!-- 登录表单 -->
     <div class="login-form">
@@ -170,36 +179,33 @@ const clear = () => {
   pointer-events: none;
 }
 
-/* .wave-bg::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: repeating-linear-gradient(90deg,
-      rgba(255, 200, 100, 0.2) 0px,
-      rgba(255, 200, 100, 0.2) 2px,
-      transparent 2px,
-      transparent 20px);
-  animation: slideWave 8s linear infinite;
-  pointer-events: none;
-} */
-
 @keyframes waveExpand {
-  0% { transform: scale(0.8); opacity: 0.2; }
-  50% { transform: scale(1.2); opacity: 0.5; }
-  100% { transform: scale(0.8); opacity: 0.2; }
-}
+  0% {
+    transform: scale(0.8);
+    opacity: 0.2;
+  }
 
-@keyframes slideWave {
-  0% { background-position: 0 0; }
-  100% { background-position: 100px 0; }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: scale(0.8);
+    opacity: 0.2;
+  }
 }
 
 @keyframes gradientBreathing {
-  0% { background-size: 100% 100%; filter: brightness(1); }
-  100% { background-size: 150% 150%; filter: brightness(1.1); }
+  0% {
+    background-size: 100% 100%;
+    filter: brightness(1);
+  }
+
+  100% {
+    background-size: 150% 150%;
+    filter: brightness(1.1);
+  }
 }
 
 /* 粒子层置于波浪背景之上，表单之下 */
@@ -210,7 +216,8 @@ const clear = () => {
   width: 100%;
   height: 100%;
   z-index: -1;
-  pointer-events: auto; /* 允许鼠标与粒子交互（如悬浮高亮） */
+  pointer-events: auto;
+  /* 允许鼠标与粒子交互（如悬浮高亮） */
 }
 
 /* 登录表单样式 */

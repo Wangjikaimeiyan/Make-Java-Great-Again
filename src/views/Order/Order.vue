@@ -356,7 +356,6 @@ const handleServiceOrder = async (id) => {
 
 <template>
     <div>
-        {{  inputOrderId  }}
         <div class="home-container">
             <!-- 左侧 -->
             <div class="left-container">
