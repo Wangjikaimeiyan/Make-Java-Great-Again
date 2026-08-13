@@ -1,7 +1,9 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue' // 1. 导入 onUnmounted
-import { queryAllSales, queryAllNotPay, queryAllNotFinish, queryAllInProgress, queryAllFinished, 
-    acceptOrder, rejectOrder, finishOrder,queryOrderById,queryTodayTurnover,queryAllTurnover,serviceOrder } from '@/api/Order'
+import {
+    queryAllSales, queryAllNotPay, queryAllNotFinish, queryAllInProgress, queryAllFinished,
+    acceptOrder, rejectOrder, finishOrder, queryOrderById, queryTodayTurnover, queryAllTurnover, serviceOrder, getExcel
+} from '@/api/Order'
 import { ElMessage, ElMessageBox } from 'element-plus' // 2. 导入 ElMessage
 
 const temp = ref('A')
@@ -292,9 +294,9 @@ const handleDetailConfirm = () => {
 
 // **********************************************订单详情对话弹窗************************************************
 // **********************************************根据orderid查询订单详情************************************************
-const getOrderById = async (orderId) => { 
+const getOrderById = async (orderId) => {
     const result = await queryOrderById(orderId)
-    if (result.code) { 
+    if (result.code) {
         currentOrderDetail.value = result.data
     } else {// 获取失败
         ElMessage.error(result.msg || '获取订单数据失败')
@@ -308,18 +310,18 @@ const inputOrderId = ref('')
 const todayTurnover = ref(0)
 const allTurnover = ref(0)
 // 获取今日营业额
-const getTodayTurnover = async () => { 
+const getTodayTurnover = async () => {
     const result = await queryTodayTurnover()
-    if (result.code) { 
+    if (result.code) {
         todayTurnover.value = result.data
-    } else if (result.data === null){// 获取失败
+    } else if (result.data === null) {// 获取失败
         ElMessage.error(result.msg || '获取今日营业额数据失败')
     }
 }
 // 获取总营业额
-const getAllTurnover = async () => { 
+const getAllTurnover = async () => {
     const result = await queryAllTurnover()
-    if (result.code) { 
+    if (result.code) {
         allTurnover.value = result.data
     } else if (result.data === null) {// 获取失败
         ElMessage.error(result.msg || '获取总营业额数据失败')
@@ -327,7 +329,7 @@ const getAllTurnover = async () => {
 }
 // **********************************************今日营业额和总营业额************************************************
 // **********************************************售后服务************************************************
-const handleServiceOrder = async (id) => { 
+const handleServiceOrder = async (id) => {
     try {
         // 弹出确认框，只有点确定才往下走
         await ElMessageBox.confirm('确定要处理退款吗？', '提示', {
@@ -351,6 +353,33 @@ const handleServiceOrder = async (id) => {
     }
 }
 // **********************************************售后服务************************************************
+// ************************************************导出Excel************************************************
+const handleExportExcel = async () => {
+  try {
+    const res = await getExcel()
+
+    const blob =
+      res instanceof Blob
+        ? res
+        : res?.data instanceof Blob
+          ? res.data
+          : new Blob([res], {
+              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            })
+
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `订单统计_${Date.now()}.xlsx`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('导出失败', error)
+  }
+}
+// ************************************************导出Excel************************************************
 
 </script>
 
@@ -372,7 +401,7 @@ const handleServiceOrder = async (id) => {
                         搜索订单:
                         <el-input v-model="inputOrderId" class="responsive-input" placeholder="请输入订单id"
                             :prefix-icon="Search" />
-                            <el-button type="primary" @click="handleShowDetail(inputOrderId)">查询</el-button>
+                        <el-button type="primary" @click="handleShowDetail(inputOrderId)">查询</el-button>
 
                     </span>
                 </div>
@@ -423,13 +452,15 @@ const handleServiceOrder = async (id) => {
                                 </div>
                                 <div v-else-if="temp === 'C'">
                                     <!-- 编辑 按钮 -->
-                                    <el-button type="primary" @click="handleFinishOrder(item.orderId)" icon="Edit" class="C-st">完成</el-button>
+                                    <el-button type="primary" @click="handleFinishOrder(item.orderId)" icon="Edit"
+                                        class="C-st">完成</el-button>
                                 </div>
                                 <div v-else-if="temp === 'D'">
                                     <div v-if="item.status === '4'" class="A-st">取消已订单</div>
                                     <!-- 编辑 按钮 -->
                                     <!-- <el-button type="danger" @click="" icon="Edit" class="D-st">售后服务</el-button> -->
-                                    <el-button v-else-if="item.status === '3'" type="danger" @click="handleServiceOrder(item.orderId)" icon="Edit"
+                                    <el-button v-else-if="item.status === '3'" type="danger"
+                                        @click="handleServiceOrder(item.orderId)" icon="Edit"
                                         class="D-st">售后服务</el-button>
                                 </div>
                             </div>
@@ -489,90 +520,85 @@ const handleServiceOrder = async (id) => {
                             <div class="dish-sales-num">{{ item.sales }}</div>
                         </div>
                     </div>
+                    <div>
+                        <!-- 数据导出按钮，返回excel文件-->
+                        <el-button type="primary" @click="handleExportExcel"
+                            class="export-excel-button">数据导出</el-button>
+                    </div>
                 </div>
             </div>
 
         </div>
     </div>
 
-<!-- 订单详情对话框 -->
-<!-- 订单详情对话框 -->
-<el-dialog
-    v-model="detailDialogVisible"
-    title="订单详情"
-    width="70%"
-    class="order-detail-dialog"
-    destroy-on-close
->
-    <div class="detail-dialog-body">
-        <!-- 左侧 -->
-        <div class="detail-left">
-            <div class="detail-left-title">用户信息</div>
+    <!-- 订单详情对话框 -->
+    <!-- 订单详情对话框 -->
+    <el-dialog v-model="detailDialogVisible" title="订单详情" width="70%" class="order-detail-dialog" destroy-on-close>
+        <div class="detail-dialog-body">
+            <!-- 左侧 -->
+            <div class="detail-left">
+                <div class="detail-left-title">用户信息</div>
 
-            <div class="detail-info-item">
-                <span class="detail-label">用户名称：</span>
-                <span class="detail-value">{{ currentOrderDetail.nickName }}</span>
-            </div>
+                <div class="detail-info-item">
+                    <span class="detail-label">用户名称：</span>
+                    <span class="detail-value">{{ currentOrderDetail.nickName }}</span>
+                </div>
 
-            <div class="detail-info-item">
-                <span class="detail-label">订单编号：</span>
-                <span class="detail-value order-id-text">{{ currentOrderDetail.orderId }}</span>
-            </div>
+                <div class="detail-info-item">
+                    <span class="detail-label">订单编号：</span>
+                    <span class="detail-value order-id-text">{{ currentOrderDetail.orderId }}</span>
+                </div>
 
-            <div class="detail-info-item">
-                <span class="detail-label">下单时间：</span>
-                <span class="detail-value">{{ currentOrderDetail.orderTime }}</span>
-            </div>
-            
-            <div class="detail-info-item">
-                <span class="detail-label">总价格：</span>
-                <span class="detail-value">￥{{ currentOrderDetail.totalPrice }}</span>
-            </div>
+                <div class="detail-info-item">
+                    <span class="detail-label">下单时间：</span>
+                    <span class="detail-value">{{ currentOrderDetail.orderTime }}</span>
+                </div>
 
-            <div class="detail-remark-block">
-                <div class="detail-label remark-label">用户备注：</div>
-                <div class="detail-remark-content">
-                    {{ currentOrderDetail.remark || '无备注' }}
+                <div class="detail-info-item">
+                    <span class="detail-label">总价格：</span>
+                    <span class="detail-value">￥{{ currentOrderDetail.totalPrice }}</span>
+                </div>
+
+                <div class="detail-remark-block">
+                    <div class="detail-label remark-label">用户备注：</div>
+                    <div class="detail-remark-content">
+                        {{ currentOrderDetail.remark || '无备注' }}
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- 右侧 -->
-        <div class="detail-right">
-            <div class="detail-right-title">菜品信息</div>
+            <!-- 右侧 -->
+            <div class="detail-right">
+                <div class="detail-right-title">菜品信息</div>
 
-            <div class="detail-dish-list">
-                <div
-                    class="detail-dish-card"
-                    v-for="dish in currentOrderDetail.dishesDtos"
-                    :key="dish.DishId"
-                >
-                    <!-- 左：图片 -->
-                    <div class="detail-dish-img-box">
-                        <img :src="dish.url" alt="dish" class="detail-dish-img" />
-                    </div>
+                <div class="detail-dish-list">
+                    <div class="detail-dish-card" v-for="dish in currentOrderDetail.dishesDtos" :key="dish.DishId">
+                        <!-- 左：图片 -->
+                        <div class="detail-dish-img-box">
+                            <img :src="dish.url" alt="dish" class="detail-dish-img" />
+                        </div>
 
-                    <!-- 中右：文字 -->
-                    <div class="detail-dish-info">
-                        <span class="detail-dish-name">{{ dish.dishName }}</span>
-                        <div class="detail-dish-top">
-                            <span class="detail-dish-price">￥{{ dish.price }}</span>
-                            <div class="detail-dish-bottom">
-                                数量：×{{ dish.dishNum }}
+                        <!-- 中右：文字 -->
+                        <div class="detail-dish-info">
+                            <span class="detail-dish-name">{{ dish.dishName }}</span>
+                            <div class="detail-dish-top">
+                                <span class="detail-dish-price">￥{{ dish.price }}</span>
+                                <div class="detail-dish-bottom">
+                                    数量：×{{ dish.dishNum }}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <template #footer>
-        <div class="detail-dialog-footer">
-            <el-button type="primary" @click="handleDetailConfirm">确定</el-button>
-        </div>
-    </template>
-</el-dialog>
+        <template #footer>
+            <div class="detail-dialog-footer">
+                <el-button type="primary" @click="handleDetailConfirm">确定</el-button>
+            </div>
+        </template>
+    </el-dialog>
 
 </template>
 
@@ -1205,4 +1231,11 @@ const handleServiceOrder = async (id) => {
 
 /* **********************************************订单详情对话框************************************************ */
 /*------------------------------ 订单详情 --------------------------------------*/
+
+.export-excel-button {
+    /* margin-left: 10px; */
+    margin-top: 40px;
+    /* 居中 */
+    margin-left: 40%;
+}
 </style>

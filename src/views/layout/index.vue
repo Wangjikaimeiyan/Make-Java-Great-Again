@@ -33,7 +33,7 @@ const getUsername = () => {
     username.value = tempdata.name;
     const token = tempdata.token;
     // 初始化ws连接
-    const wsUrl = `ws://127.0.0.1:8080/ws/${token}`
+    const wsUrl = `ws://192.168.10.47:8080/ws/${token}`
     initGlobalWs(wsUrl)
   }
 }

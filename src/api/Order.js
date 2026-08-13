@@ -36,3 +36,8 @@ export const queryAllTurnover = () => request.get(`/Order/AllTurnover`)
 
 // 退款serviceOrder
 export const serviceOrder = (orderId) => request.post(`/Order/serviceOrder?orderId=${orderId}`)
+
+ // 获取excel 
+ export const getExcel = () => request.get(`/Order/getExcel`,{
+    responseType: 'blob'
+ })
